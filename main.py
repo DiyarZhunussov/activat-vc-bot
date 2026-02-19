@@ -715,10 +715,12 @@ def main():
     logger.info(f"👮 Admins: {len(TELEGRAM_ADMIN_IDS)}")
     
     # Создаем приложение БЕЗ JobQueue (используем только APScheduler)
+    # job_queue=False критически важно для Python 3.14+
     application = (
         Application.builder()
         .token(TELEGRAM_BOT_TOKEN)
         .post_init(post_init)
+        .job_queue(None)  # КРИТИЧНО: отключаем встроенный JobQueue
         .concurrent_updates(True)
         .build()
     )
