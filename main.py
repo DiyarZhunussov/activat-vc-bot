@@ -33,6 +33,12 @@ logger = logging.getLogger(__name__)
 # Render автоматически предоставляет PORT для веб-сервисов
 PORT = int(os.getenv('PORT', '8443'))
 
+# Проверка версии Python
+import sys
+if sys.version_info >= (3, 12):
+    logger.warning(f"⚠️ Python {sys.version_info.major}.{sys.version_info.minor} обнаружен. Рекомендуется 3.11")
+    logger.warning("⚠️ Создайте runtime.txt с содержимым: python-3.11.10")
+
 # Telegram
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = int(os.getenv('TELEGRAM_CHAT_ID', '-1003812789640'))
@@ -708,8 +714,14 @@ def main():
     logger.info(f"📍 Chat ID: {TELEGRAM_CHAT_ID}")
     logger.info(f"👮 Admins: {len(TELEGRAM_ADMIN_IDS)}")
     
-    # Создаем приложение
-    application = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
+    # Создаем приложение БЕЗ JobQueue (используем только APScheduler)
+    application = (
+        Application.builder()
+        .token(TELEGRAM_BOT_TOKEN)
+        .post_init(post_init)
+        .concurrent_updates(True)
+        .build()
+    )
     
     # Регистрируем обработчики
     application.add_handler(CommandHandler("start", start_command))
